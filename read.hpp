@@ -13,7 +13,7 @@
 
 namespace iolisp
 {
-namespace detail
+namespace read_detail
 {
 namespace ascii = boost::spirit::ascii;
 namespace phx = boost::phoenix;
@@ -114,7 +114,7 @@ template <class C, class CT>
 inline std::basic_istream<C, CT> &operator>>(std::basic_istream<C, CT> &s, value &v)
 {
     using iterator = boost::spirit::basic_istream_iterator<C, CT>;
-    detail::value_grammar<iterator> expr;
+    read_detail::value_grammar<iterator> expr;
     auto it = iterator(s);
     auto const r = boost::spirit::qi::phrase_parse(it, iterator(), expr, v);
     if (!r)
@@ -123,7 +123,7 @@ inline std::basic_istream<C, CT> &operator>>(std::basic_istream<C, CT> &s, value
 
 inline value read(std::string const &s)
 {
-    detail::value_grammar<std::string::const_iterator> expr;
+    read_detail::value_grammar<std::string::const_iterator> expr;
     auto it = s.begin();
     value attr;
     auto const r = boost::spirit::qi::phrase_parse(
