@@ -19,8 +19,6 @@ namespace ascii = boost::spirit::ascii;
 namespace phx = boost::phoenix;
 namespace qi = boost::spirit::qi;
 
-// qi::rule<std::string::const_iterator, char ()> const symbol = ascii::char_("!#$%&|*+/:<=>?@^_~") | ascii::char_('-');
-
 template <class Iterator>
 class value_grammar
   : public qi::grammar<Iterator, value (), ascii::space_type>
