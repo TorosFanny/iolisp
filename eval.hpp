@@ -6,6 +6,7 @@
 #include <map>
 #include <memory>
 #include <string>
+#include <vector>
 #include <boost/range/adaptors.hpp>
 #include <boost/range/algorithm_ext/insert.hpp>
 #include <boost/range/functions.hpp>
@@ -15,8 +16,6 @@
 
 namespace iolisp
 {
-value eval(environment const &env, value const &val);
-
 namespace eval_detail
 {
 inline bool is_bound(environment const &env, std::string const &var)
@@ -58,11 +57,33 @@ inline value define_variable(environment const &env, std::string const &var, val
     }
 }
 
+template <class Parameters, class Body>
+inline value make_function(
+    Parameters const &params,
+    boost::optional<value> const &varargs,
+    Body const &body,
+    environment const &env)
+{
+    value::function_rep rep;
+    boost::insert(
+        rep.parameters,
+        rep.parameters.end(),
+        params | boost::adaptors::transformed(&show));
+    rep.variadic_argument = varargs ? boost::make_optional(show(*varargs)) : boost::none;
+    boost::insert(rep.body, rep.body.end(), body);
+    rep.closure = env;
+    return value::make<function>(rep);
+}
+}
+value eval(environment const &envm, value const &val);
+
 template <class Args>
 inline value apply(value const &func, Args const &args)
 {
     if (func.is<primitive_function>())
         return func.get<primitive_function>()(args);
+    else if (func.is<io_function>())
+        return func.get<io_function>()(args);
     else if (func.is<function>())
     {
         auto const &rep = func.get<function>();
@@ -90,24 +111,7 @@ inline value apply(value const &func, Args const &args)
     throw not_function("Unrecognized primitive function args", show(func));
 }
 
-template <class Parameters, class Body>
-inline value make_function(
-    Parameters const &params,
-    boost::optional<value> const &varargs,
-    Body const &body,
-    environment const &env)
-{
-    value::function_rep rep;
-    boost::insert(
-        rep.parameters,
-        rep.parameters.end(),
-        params | boost::adaptors::transformed(&show));
-    rep.variadic_argument = varargs ? boost::make_optional(show(*varargs)) : boost::none;
-    boost::insert(rep.body, rep.body.end(), body);
-    rep.closure = env;
-    return value::make<function>(rep);
-}
-}
+std::vector<value> load(std::string const &filename);
 
 inline value eval(environment const &env, value const &val)
 {
@@ -213,6 +217,18 @@ inline value eval(environment const &env, value const &val)
                 boost::none,
                 vec | boost::adaptors::sliced(2, vec.size()),
                 env);
+        // eval env (List [Atom "load", String filename]) = ...
+        else if (
+            vec.size() == 2 &&
+            vec[0].is<atom>() && vec[0].get<atom>() == "load" &&
+            vec[1].is<string>())
+        {
+            auto const exprs = load(vec[1].get<string>());
+            value ret;
+            for (auto const &expr : exprs)
+                ret = eval(env, expr);
+            return ret;
+        }
         // eval env (List (function : args)) = ...
         else if (!vec.empty())
         {
@@ -224,7 +240,7 @@ inline value eval(environment const &env, value const &val)
                     return eval(env, val);
                 }
             };
-            return eval_detail::apply(
+            return apply(
                 eval(env, vec[0]),
                 vec | boost::adaptors::sliced(1, vec.size()) 
                     | boost::adaptors::transformed(eval_env{env}));
@@ -232,6 +248,10 @@ inline value eval(environment const &env, value const &val)
     }
     throw bad_special_form("Unrecognized special form", val);
 }
+
+using eval_detail::define_variable;
 }
+
+#include "./io_primitives.hpp"
 
 #endif

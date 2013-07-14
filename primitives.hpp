@@ -222,44 +222,37 @@ inline value equal(arguments args)
 }
 }
 
-inline environment primitive_bindings()
+inline std::map<std::string, std::function<value (arguments)>> primitives()
 {
     using namespace primitives_detail;
-    using std::placeholders::_1;
-    auto const env = std::make_shared<std::map<std::string, std::shared_ptr<value>>>();
-    auto const add = [&](std::string var, std::function<value (arguments)> func)
-        {
-            env->insert({
-                std::move(var),
-                std::make_shared<value>(value::make<primitive_function>(func))});
-        };
-    add("+", std::bind(&numeric_binary_op, std::plus<int>(), _1));
-    add("-", std::bind(&numeric_binary_op, std::minus<int>(), _1));
-    add("*", std::bind(&numeric_binary_op, std::multiplies<int>(), _1));
-    add("/", std::bind(&numeric_binary_op, std::divides<int>(), _1));
-    add("mod", std::bind(&numeric_binary_op, std::modulus<int>(), _1));
-    add("quotient", std::bind(&numeric_binary_op, std::divides<int>(), _1));
-    add("remainder", std::bind(&numeric_binary_op, std::modulus<int>(), _1));
-    add("=", std::bind(&bool_binary_op<number>, std::equal_to<int>(), _1));
-    add("<", std::bind(&bool_binary_op<number>, std::less<int>(), _1));
-    add(">", std::bind(&bool_binary_op<number>, std::greater<int>(), _1));
-    add("/=", std::bind(&bool_binary_op<number>, std::not_equal_to<int>(), _1));
-    add(">=", std::bind(&bool_binary_op<number>, std::greater_equal<int>(), _1));
-    add("<=", std::bind(&bool_binary_op<number>, std::less_equal<int>(), _1));
-    add("&&", std::bind(&bool_binary_op<bool_>, std::logical_and<bool>(), _1));
-    add("||", std::bind(&bool_binary_op<bool_>, std::logical_or<bool>(), _1));
-    add("string=?", std::bind(&bool_binary_op<string>, std::equal_to<std::string>(), _1));
-    add("string<?", std::bind(&bool_binary_op<string>, std::less<std::string>(), _1));
-    add("string>?", std::bind(&bool_binary_op<string>, std::greater<std::string>(), _1));
-    add("string<=?", std::bind(&bool_binary_op<string>, std::less_equal<std::string>(), _1));
-    add("string>=?", std::bind(&bool_binary_op<string>, std::greater_equal<std::string>(), _1));
-    add("car", &car);
-    add("cdr", &cdr);
-    add("cons", &cons);
-    add("eq?", &eqv);
-    add("eqv?", &eqv);
-    add("equal?", &equal);
-    return env;
+    using namespace std::placeholders;
+    return {
+        {"+", std::bind(&numeric_binary_op, std::plus<int>(), _1)},
+        {"-", std::bind(&numeric_binary_op, std::minus<int>(), _1)},
+        {"*", std::bind(&numeric_binary_op, std::multiplies<int>(), _1)},
+        {"/", std::bind(&numeric_binary_op, std::divides<int>(), _1)},
+        {"mod", std::bind(&numeric_binary_op, std::modulus<int>(), _1)},
+        {"quotient", std::bind(&numeric_binary_op, std::divides<int>(), _1)},
+        {"remainder", std::bind(&numeric_binary_op, std::modulus<int>(), _1)},
+        {"=", std::bind(&bool_binary_op<number>, std::equal_to<int>(), _1)},
+        {"<", std::bind(&bool_binary_op<number>, std::less<int>(), _1)},
+        {">", std::bind(&bool_binary_op<number>, std::greater<int>(), _1)},
+        {"/=", std::bind(&bool_binary_op<number>, std::not_equal_to<int>(), _1)},
+        {">=", std::bind(&bool_binary_op<number>, std::greater_equal<int>(), _1)},
+        {"<=", std::bind(&bool_binary_op<number>, std::less_equal<int>(), _1)},
+        {"&&", std::bind(&bool_binary_op<bool_>, std::logical_and<bool>(), _1)},
+        {"||", std::bind(&bool_binary_op<bool_>, std::logical_or<bool>(), _1)},
+        {"string=?", std::bind(&bool_binary_op<string>, std::equal_to<std::string>(), _1)},
+        {"string<?", std::bind(&bool_binary_op<string>, std::less<std::string>(), _1)},
+        {"string>?", std::bind(&bool_binary_op<string>, std::greater<std::string>(), _1)},
+        {"string<=?", std::bind(&bool_binary_op<string>, std::less_equal<std::string>(), _1)},
+        {"string>=?", std::bind(&bool_binary_op<string>, std::greater_equal<std::string>(), _1)},
+        {"car", &car},
+        {"cdr", &cdr},
+        {"cons", &cons},
+        {"eq?", &eqv},
+        {"eqv?", &eqv},
+        {"equal?", &equal}};
 }
 }
 #endif

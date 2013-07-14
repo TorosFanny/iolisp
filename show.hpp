@@ -39,8 +39,12 @@ inline std::basic_ostream<C, CT> &operator<<(std::basic_ostream<C, CT> &os, valu
         os << '"' << val.get<string>() << '"';
     else if (val.is<bool_>())
         os << (val.get<bool_>() ? "#t" : "#f");
+    else if (val.is<port>())
+        os << "<IO port>";
     else if (val.is<primitive_function>())
         os << "<primitive>";
+    else if (val.is<io_function>())
+        os << "<IO primitive>";
     else if (val.is<function>())
     {
         auto const &rep = val.get<function>();

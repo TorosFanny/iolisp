@@ -2,6 +2,7 @@
 #define IOLISP_VALUE_HPP
 
 #include <cstddef>
+#include <fstream>
 #include <functional>
 #include <map>
 #include <memory>
@@ -26,7 +27,9 @@ struct dotted_list {};
 struct number {};
 struct string {};
 struct bool_ {};
+struct port {};
 struct primitive_function {};
+struct io_function {};
 struct function {};
 
 class value;
@@ -59,7 +62,9 @@ public:
         boost::mpl::pair<number, int>,
         boost::mpl::pair<string, std::string>,
         boost::mpl::pair<bool_, bool>,
+        boost::mpl::pair<port, std::shared_ptr<std::fstream>>,
         boost::mpl::pair<primitive_function, std::function<value (arguments)>>,
+        boost::mpl::pair<io_function, std::function<value (arguments)>>,
         boost::mpl::pair<function, function_rep>>;
 
     template <class Type>
@@ -103,7 +108,9 @@ private:
         boost::fusion::pair<number, rep<number>>,
         boost::fusion::pair<string, rep<string>>,
         boost::fusion::pair<bool_, rep<bool_>>,
+        boost::fusion::pair<port, rep<port>>,
         boost::fusion::pair<primitive_function, rep<primitive_function>>,
+        boost::fusion::pair<io_function, rep<io_function>>,
         boost::fusion::pair<function, rep<function>>>;
 
     template <class Type>

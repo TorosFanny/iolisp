@@ -142,6 +142,22 @@ inline value read(std::string const &input)
         throw parse_error(expr.get_error());
     return val;
 }
+
+inline std::vector<value> read_expr_list(std::string const &input)
+{
+    read_detail::value_grammar<std::string::const_iterator> expr;
+    auto it = input.begin();
+    std::vector<value> vals;
+    auto const res = boost::spirit::qi::phrase_parse(
+        it,
+        input.end(),
+        *expr,
+        boost::spirit::ascii::space,
+        vals);
+    if (!res)
+        throw parse_error(expr.get_error());
+    return vals;
+}
 }
 
 #endif
