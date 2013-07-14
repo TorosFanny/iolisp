@@ -56,9 +56,9 @@ inline std::basic_ostream<C, CT> &operator<<(std::basic_ostream<C, CT> &os, valu
                 auto const &elem :
                 rep.parameters | boost::adaptors::sliced(1, rep.parameters.size()))
                 os << " \"" << elem << '"';
-            if (rep.variadic_argument)
-                os << " . " << *rep.variadic_argument;
         }
+        if (rep.variadic_argument)
+            os << " . " << *rep.variadic_argument;
         os << ") ...)";
     }
     return os;

@@ -8,7 +8,6 @@
 #include <string>
 #include <vector>
 #include <boost/range/adaptors.hpp>
-#include <boost/range/algorithm_ext/insert.hpp>
 #include <boost/range/functions.hpp>
 #include <boost/optional.hpp>
 #include "./errors.hpp"
@@ -64,15 +63,12 @@ inline value make_function(
     Body const &body,
     environment const &env)
 {
-    value::function_rep rep;
-    boost::insert(
-        rep.parameters,
-        rep.parameters.end(),
-        params | boost::adaptors::transformed(&show));
-    rep.variadic_argument = varargs ? boost::make_optional(show(*varargs)) : boost::none;
-    boost::insert(rep.body, rep.body.end(), body);
-    rep.closure = env;
-    return value::make<function>(rep);
+    auto const param_strs = params | boost::adaptors::transformed(&show);
+    return value::make<function>({
+        {boost::begin(param_strs), boost::end(param_strs)},
+        varargs ? boost::make_optional(show(*varargs)) : boost::none,
+        {boost::begin(body), boost::end(body)},
+        env});
 }
 }
 value eval(environment const &envm, value const &val);
