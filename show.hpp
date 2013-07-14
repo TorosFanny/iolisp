@@ -3,7 +3,6 @@
 
 #include <ostream>
 #include <string>
-#include <boost/fusion/include/at_c.hpp>
 #include <boost/lexical_cast.hpp>
 #include <boost/range/adaptor/sliced.hpp>
 #include "./value.hpp"
@@ -11,42 +10,59 @@
 namespace iolisp
 {
 template <class C, class CT>
-inline std::basic_ostream<C, CT> &operator<<(std::basic_ostream<C, CT> &s, value const &v)
+inline std::basic_ostream<C, CT> &operator<<(std::basic_ostream<C, CT> &os, value const &val)
 {
-    if (v.is<atom>())
-        s << v.get<atom>();
-    else if (v.is<list>())
+    if (val.is<atom>())
+        os << val.get<atom>();
+    else if (val.is<list>())
     {
-        s << '(';
-        auto const &vec = v.get<list>();
+        os << '(';
+        auto const &vec = val.get<list>();
         if (!vec.empty())
         {
-            s << vec.front();
-            for (auto const &val : vec | boost::adaptors::sliced(1, vec.size()))
-                s << ' ' << val;
+            os << vec.front();
+            for (auto const &elem : vec | boost::adaptors::sliced(1, vec.size()))
+                os << ' ' << elem;
         }
-        s << ')';
+        os << ')';
     }
-    else if (v.is<dotted_list>())
+    else if (val.is<dotted_list>())
     {
-        s << '(';
-        auto const &p = v.get<dotted_list>();
-        for (auto const &val : boost::fusion::at_c<0>(p))
-            s << val << ' ';
-        s << ". " << boost::fusion::at_c<1>(p) << ')';
+        os << '(';
+        for (auto const &elem : val.get<dotted_list>().first)
+            os << elem << ' ';
+        os << ". " << val.get<dotted_list>().second << ')';
     }
-    else if (v.is<number>())
-        s << v.get<number>();
-    else if (v.is<string>())
-        s << '"' << v.get<string>() << '"';
-    else if (v.is<bool_>())
-        s << (v.get<bool_>() ? "#t" : "#f");
-    return s;
+    else if (val.is<number>())
+        os << val.get<number>();
+    else if (val.is<string>())
+        os << '"' << val.get<string>() << '"';
+    else if (val.is<bool_>())
+        os << (val.get<bool_>() ? "#t" : "#f");
+    else if (val.is<primitive_function>())
+        os << "<primitive>";
+    else if (val.is<function>())
+    {
+        auto const &rep = val.get<function>();
+        os << "(lambda (";
+        if (!rep.parameters.empty())
+        {
+            os << '"' << rep.parameters.front() << '"';
+            for (
+                auto const &elem :
+                rep.parameters | boost::adaptors::sliced(1, rep.parameters.size()))
+                os << " \"" << elem << '"';
+            if (rep.variadic_argument)
+                os << " . " << *rep.variadic_argument;
+        }
+        os << ") ...)";
+    }
+    return os;
 }
 
-inline std::string show(value const &v)
+inline std::string show(value const &val)
 {
-    return boost::lexical_cast<std::string>(v);
+    return boost::lexical_cast<std::string>(val);
 }
 }
 

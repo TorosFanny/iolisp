@@ -8,7 +8,7 @@
 #include <boost/spirit/include/phoenix.hpp>
 #include <boost/spirit/include/qi.hpp>
 #include <boost/spirit/include/support_istream_iterator.hpp>
-#include "./error.hpp"
+#include "./errors.hpp"
 #include "./value.hpp"
 
 namespace iolisp
@@ -50,13 +50,13 @@ public:
                 },
                 qi::_val, qi::_1)];
 
-        dotted_list_ = ('(' >> *expr_ > ascii::char_('.') > expr_ > ')')[
+        dotted_list_ = ('(' >> *expr_ > '.' > expr_ > ')')[
             phx::bind(
-                [](value &val, std::vector<value> const &init, char, value const &last)
+                [](value &val, std::vector<value> const &init, value const &last)
                 {
                     val = value::make<dotted_list>({init, last});
                 },
-                qi::_val, qi::_1, qi::_2, qi::_3)];
+                qi::_val, qi::_1, qi::_2)];
 
         string_ = qi::lexeme[qi::as_string['"' >> *(ascii::char_ - '"') >> '"'][
             phx::bind(
@@ -111,30 +111,36 @@ private:
 }
 
 template <class C, class CT>
-inline std::basic_istream<C, CT> &operator>>(std::basic_istream<C, CT> &s, value &v)
+inline std::basic_istream<C, CT> &operator>>(std::basic_istream<C, CT> &is, value &val)
 {
     using iterator = boost::spirit::basic_istream_iterator<C, CT>;
     read_detail::value_grammar<iterator> expr;
-    auto it = iterator(s);
-    auto const r = boost::spirit::qi::phrase_parse(it, iterator(), expr, v);
-    if (!r)
-        s.setstate(std::ios::failbit);
-}
-
-inline value read(std::string const &s)
-{
-    read_detail::value_grammar<std::string::const_iterator> expr;
-    auto it = s.begin();
-    value attr;
-    auto const r = boost::spirit::qi::phrase_parse(
+    auto it = iterator(is);
+    auto const res = boost::spirit::qi::phrase_parse(
         it,
-        s.end(),
+        iterator(),
         expr,
         boost::spirit::ascii::space,
-        attr);
-    if (!r)
+        val);
+    if (!res)
+        is.setstate(std::ios::failbit);
+    return is;
+}
+
+inline value read(std::string const &input)
+{
+    read_detail::value_grammar<std::string::const_iterator> expr;
+    auto it = input.begin();
+    value val;
+    auto const res = boost::spirit::qi::phrase_parse(
+        it,
+        input.end(),
+        expr,
+        boost::spirit::ascii::space,
+        val);
+    if (!res)
         throw parse_error(expr.get_error());
-    return attr;
+    return val;
 }
 }
 
