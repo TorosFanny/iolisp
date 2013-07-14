@@ -94,7 +94,7 @@ public:
                 [this](Iterator first, Iterator, Iterator error_pos, qi::info const &info)
                 {
                     std::ostringstream s;
-                    s << "column " << (error_pos - first) << ": expecting " << info;
+                    s << "column " << (error_pos - first + 1) << ": expecting " << info;
                     error_ = s.str();
                 },
                 qi::_1, qi::_2, qi::_3, qi::_4));
