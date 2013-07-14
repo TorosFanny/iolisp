@@ -199,7 +199,7 @@ template <class Type>
 inline bool unpack_equals(value const &lhs, value const &rhs)
 try
 {
-    return unpack<Type>(rhs) == unpack<Type>(rhs);
+    return unpack<Type>(lhs) == unpack<Type>(rhs);
 }
 catch (type_mismatch const &)
 {

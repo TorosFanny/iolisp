@@ -5,7 +5,7 @@
 #include <map>
 #include <memory>
 #include <string>
-#include <boost/range/adaptor/transformed.hpp>
+#include <boost/range/adaptors.hpp>
 #include <boost/range/functions.hpp>
 #include <boost/range/iterator_range.hpp>
 #include "./eval.hpp"
@@ -58,7 +58,9 @@ void run_repl()
 void run_one(boost::iterator_range<char **> rng)
 {
     auto const env = primitive_bindings();
-    auto const args = rng | boost::adaptors::transformed(&value::make<string>);
+    auto const args = rng
+        | boost::adaptors::sliced(1, boost::size(rng))
+        | boost::adaptors::transformed(&value::make<string>);
     define_variable(env, "args", value::make<list>({boost::begin(args), boost::end(args)}));
     auto const val = value::make<list>({
         value::make<atom>("load"),
@@ -71,5 +73,5 @@ int main(int argc, char *argv[])
     if (argc == 1)
         run_repl();
     else
-        run_one(boost::make_iterator_range(argv + 2, argv + argc));
+        run_one(boost::make_iterator_range(argv + 1, argv + argc));
 }

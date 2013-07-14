@@ -28,7 +28,7 @@ inline value apply_proc(arguments args)
         return apply(*boost::begin(args), (boost::begin(args) + 1)->get<list>());
     else if (boost::size(args) >= 1)
         return apply(*boost::begin(args), args | boost::adaptors::sliced(1, boost::size(args)));
-    BOOST_ASSERT(false);
+    throw wrong_number_of_arguments(1, args);
 }
 
 inline value make_port(std::ios::openmode mode, arguments args)
@@ -38,7 +38,7 @@ inline value make_port(std::ios::openmode mode, arguments args)
         return value::make<port>(
             std::make_shared<std::fstream>(boost::begin(args)->get<string>(), mode));
     }
-    BOOST_ASSERT(false);
+    throw wrong_number_of_arguments(1, args);
 }
 
 inline value close_port(arguments args)
@@ -65,7 +65,7 @@ inline value read_proc(arguments args)
         std::getline(*boost::begin(args)->get<port>(), ret);
         return value::make<string>(ret);
     }
-    BOOST_ASSERT(false);
+    throw wrong_number_of_arguments(0, args);
 }
 
 inline value write_proc(arguments args)
@@ -80,7 +80,7 @@ inline value write_proc(arguments args)
         *(boost::begin(args) + 1)->get<port>() << *boost::begin(args) << std::endl;
         return value::make<bool_>(true);
     }
-    BOOST_ASSERT(false);
+    throw wrong_number_of_arguments(0, args);
 }
 
 inline std::string read_file(std::string const &filename)
@@ -99,14 +99,14 @@ inline value read_contents(arguments args)
 {
     if (boost::size(args) == 1 && boost::begin(args)->is<string>())
         return value::make<string>(read_file(boost::begin(args)->get<string>()));
-    BOOST_ASSERT(false);
+    throw wrong_number_of_arguments(1, args);
 }
 
 inline value read_all(arguments args)
 {
     if (boost::size(args) == 1 && boost::begin(args)->is<string>())
         return value::make<list>(load(boost::begin(args)->get<string>()));
-    BOOST_ASSERT(false);
+    throw wrong_number_of_arguments(1, args);
 }
 }
 

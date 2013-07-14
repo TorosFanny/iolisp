@@ -19,6 +19,8 @@ namespace ascii = boost::spirit::ascii;
 namespace phx = boost::phoenix;
 namespace qi = boost::spirit::qi;
 
+// qi::rule<std::string::const_iterator, char ()> const symbol = ascii::char_("!#$%&|*+/:<=>?@^_~") | ascii::char_('-');
+
 template <class Iterator>
 class value_grammar
   : public qi::grammar<Iterator, value (), ascii::space_type>
@@ -27,9 +29,9 @@ public:
     value_grammar()
       : value_grammar::base_type(expr_)
     {
-        auto const symbol = ascii::char_("!#$%&|*+/:<=>?@^_~") | ascii::char_('-');
+        symbol_ = ascii::char_("!#$%&|*+/:<=>?@^_~") | ascii::char_('-');
 
-        atom_ = qi::lexeme[qi::as_string[(ascii::alpha | symbol) >> *(ascii::alnum | symbol)][
+        atom_ = qi::lexeme[qi::as_string[(ascii::alpha | symbol_) >> *(ascii::alnum | symbol_)][
             phx::bind(
                 [](value &val, std::string const &attr)
                 {
@@ -106,6 +108,7 @@ public:
 private:
     qi::rule<Iterator, value (), ascii::space_type>
     expr_, atom_, list_, dotted_list_, string_, number_, quoted_;
+    qi::rule<Iterator, char ()> symbol_;
     std::string error_;
 };
 }

@@ -1,2 +1,7 @@
-project : requirements <cxxflags>-std=c++11 <include>C:/Installed/Boost ;
+import os ;
+
+BOOST_ROOT = [ os.environ BOOST_ROOT ] ;
+
+project : requirements <cxxflags>-std=c++11 <include>$(BOOST_ROOT) ;
+
 exe iolisp : main.cpp ;
